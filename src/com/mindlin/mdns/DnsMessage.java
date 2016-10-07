@@ -1,80 +1,276 @@
 package com.mindlin.mdns;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class DnsMessage {
+	//Masks for the flags
+	public static final int QR_MASK = 1 << 15;
+	public static final int OPCODE_MASK = 0b1111 << 11;
+	public static final int AA_MASK = 1 << 10;
+	public static final int TC_MASK = 1 << 9;
+	public static final int RD_MASK = 1 << 8;
+	public static final int RA_MASK = 1 << 7;
+	public static final int Z_MASK  = 1 << 6;
+	public static final int AD_MASK = 1 << 5;
+	public static final int CD_MASK = 1 << 4;
+	public static final int RCODE_MASK = 0b1111;
+	
 	public static DnsMessage parse(ByteBuffer buf) {
-		//See http://www.networksorcery.com/enp/protocol/dns.htm
-		final int id      = buf.getShort() & 0xFF_FF;
-		final int flags   = buf.getShort() & 0xFF_FF;
+		// See http://www.networksorcery.com/enp/protocol/dns.htm
+		final int id = buf.getShort() & 0xFF_FF;
+		final int flags = buf.getShort() & 0xFF_FF;
 		final int qdCount = buf.getShort() & 0xFF_FF;
 		final int anCount = buf.getShort() & 0xFF_FF;
 		final int nsCount = buf.getShort() & 0xFF_FF;
 		final int arCount = buf.getShort() & 0xFF_FF;
+		
 		DnsQuery[] questions = new DnsQuery[qdCount];
 		for (int i = 0; i < qdCount; i++)
 			questions[i] = DnsQuery.readNext(buf);
-		DnsAnswer[] answers = new DnsAnswer[anCount];
+		
+		DnsRecord[] answers = new DnsRecord[anCount];
 		for (int i = 0; i < anCount; i++)
-			answers[i] = DnsAnswer.readNext(buf);
-		//TODO finish
-		return null;
+			answers[i] = DnsRecord.readNext(buf);
+		
+		DnsRecord[] authRecords = new DnsRecord[anCount];
+		for (int i = 0; i < nsCount; i++)
+			authRecords[i] = DnsRecord.readNext(buf);
+
+		DnsRecord[] additional = new DnsRecord[anCount];
+		for (int i = 0; i < arCount; i++)
+			additional[i] = DnsRecord.readNext(buf);
+		
+		return new DnsMessage(id, flags, questions, answers, authRecords, additional);
 	}
-	//See http://www.zytrax.com/books/dns/ch15/
+	
+	// See http://www.zytrax.com/books/dns/ch15/
 	protected final int id;
 	protected final int flags;
 	/**
-	 * Number of items in question section
+	 * Question section
 	 */
-	protected final int qdCount;
 	protected final DnsQuery[] questions;
 	/**
-	 * Number of items in answer section
+	 * Answer section
 	 */
-	protected final int anCount;
-	protected final DnsAnswer[] answers;
+	protected final DnsRecord[] answers;
 	/**
-	 * Number of items in authority section
+	 * Authority section
 	 */
-	protected final int nsCount;
+	protected final DnsRecord[] authRecords;
 	/**
-	 * Number of items in additional section
+	 * Additional section
 	 */
-	protected final int arCount;
+	protected final DnsRecord[] additionalRecords;
 	
-	public DnsMessage(int id, int flags, DnsQuery[] questions, DnsAnswer[] answers, int nsCount, int arCount) {
+	public DnsMessage(int id, int flags, DnsQuery[] questions, DnsRecord[] answers,
+			DnsRecord[] authRecords, DnsRecord[] additionalRecords) {
 		this.id = id;
 		this.flags = flags;
 		this.questions = questions == null ? new DnsQuery[0] : questions;
-		this.qdCount = this.questions.length;
-		this.answers = answers == null ? new DnsAnswer[0] : answers;
-		this.anCount = this.answers.length;
-		this.nsCount = nsCount;
-		this.arCount = arCount;
+		this.answers = answers == null ? new DnsRecord[0] : answers;
+		this.authRecords = authRecords;
+		this.additionalRecords = additionalRecords;
+	}
+	
+	public int getId() {
+		return this.id;
+	}
+	
+	public boolean isQuery() {
+		return (this.flags & QR_MASK) != 0;
+	}
+	
+	public byte getOpcode() {
+		return (byte) ((this.flags & OPCODE_MASK) >>> 11);
+	}
+	
+	public boolean isAuthorative() {
+		return (this.flags & AA_MASK) != 0;
+	}
+	
+	public boolean isTruncated() {
+		return (this.flags & TC_MASK) != 0;
+	}
+	
+	public boolean isRecursionDesired() {
+		return (this.flags & RD_MASK) != 0;
+	}
+	
+	public boolean isRecursionAvailable() {
+		return (this.flags & RA_MASK) != 0;
+	}
+	
+	public boolean getZBit() {
+		return (this.flags & Z_MASK) != 0;
+	}
+	
+	public boolean isAuthenticatedData() {
+		return (this.flags & AD_MASK) != 0;
+	}
+	
+	public boolean isCheckingDisabled() {
+		return (this.flags & CD_MASK) != 0;
+	}
+	
+	public byte getReturnCode() {
+		return (byte) (this.flags & RCODE_MASK);
 	}
 	
 	public int getSize() {
-		int result = 12;//Header length
-		for (int i = 0; i < qdCount; i++)
-			result += questions[i].getSize();
-		for (int i = 0; i < anCount; i++)
-			result += answers[i].getSize();
-		return result; 
+		int result = 12;// Header length
+		for (int i = 0, l = this.questions.length; i < l; i++)
+			result += this.questions[i].getSize();
+		for (int i = 0, l = this.answers.length; i < l; i++)
+			result += this.answers[i].getSize();
+		for (int i = 0, l = this.authRecords.length; i < l; i++)
+			result += this.authRecords[i].getSize();
+		for (int i = 0, l = this.additionalRecords.length; i < l; i++)
+			result += this.additionalRecords[i].getSize();
+		return result;
 	}
 	
 	public void writeTo(ByteBuffer buf) {
-		buf.putShort((short) id);
-		buf.putShort((short) flags);
-		buf.putShort((short) qdCount);
-		buf.putShort((short) anCount);
-		buf.putShort((short) nsCount);
-		buf.putShort((short) arCount);
+		buf.putShort((short) this.id);
+		buf.putShort((short) this.flags);
+		buf.putShort((short) this.questions.length);
+		buf.putShort((short) this.answers.length);
+		buf.putShort((short) this.authRecords.length);
+		buf.putShort((short) this.additionalRecords.length);
 		
-		for (int i = 0; i < qdCount; i++)
-			questions[i].writeTo(buf);
+		for (int i = 0, l = this.questions.length; i < l; i++)
+			this.questions[i].writeTo(buf);
 		
-		for (int i = 0; i < anCount; i++)
-			answers[i].writeTo(buf);
+		for (int i = 0, l = this.answers.length; i < l; i++)
+			this.answers[i].writeTo(buf);
+		
+		for (int i = 0, l = this.authRecords.length; i < l; i++)
+			this.authRecords[i].writeTo(buf);
+		
+		for (int i = 0, l = this.additionalRecords.length; i < l; i++)
+			this.additionalRecords[i].writeTo(buf);
 	}
 	
+	public String toString() {
+		return new StringBuffer()
+			.append("DnsMessage{id:").append(this.id)
+			.append(",flags:").append(this.flags)
+			.append(",qdCount:").append(this.questions.length)
+			.append(",anCount:").append(this.answers.length)
+			.append(",nsCount:").append(this.authRecords.length)
+			.append(",arCount:").append(this.additionalRecords.length)
+			.append(",questions:").append(Arrays.toString(this.questions))
+			.append(",answers:").append(Arrays.toString(this.answers))
+			.append(",auth:").append(Arrays.toString(this.authRecords))
+			.append(",additional:").append(Arrays.toString(this.additionalRecords))
+			.append('}')
+			.toString();
+	}
+	
+	public static class DnsMessageBuilder {
+		protected int id;
+		protected int flags;
+		protected List<DnsQuery> questions = new ArrayList<>();
+		protected List<DnsRecord> answers = new ArrayList<>();
+		protected List<DnsRecord> authorities = new ArrayList<>();
+		protected List<DnsRecord> additional = new ArrayList<>();
+		
+		protected void setFlag(boolean value, int mask) {
+			this.flags = value ? (this.flags | mask) : (this.flags & ~mask);
+		}
+		
+		public DnsMessageBuilder setId(int id) throws IllegalArgumentException {
+			if (id > 65535 || id < 0)
+				throw new IllegalArgumentException("ID must be within the range (0, 2^16 - 1). Invalid value " + id);
+			this.id = id;
+			return this;
+		}
+		
+		public DnsMessageBuilder setFlags(int flags) throws IllegalArgumentException {
+			if (id > 65535 || id < 0)
+				throw new IllegalArgumentException("Flags must be within the range (0, 2^16 - 1). Invalid value " + flags);
+			this.flags = flags;
+			return this;
+		}
+		
+		public DnsMessageBuilder setQuery(boolean isQuery) {
+			setFlag(isQuery, QR_MASK);
+			return this;
+		}
+		
+		public DnsMessageBuilder setOpcode(byte opcode) throws IllegalArgumentException {
+			if (opcode > 15 || opcode < 0)
+				throw new IllegalArgumentException("Opcode must be within the range (0, 2^4 - 1). Invalid value " + opcode);
+			this.flags = (this.flags & ~OPCODE_MASK) | (opcode << 11);
+			return this;
+		}
+		
+		public DnsMessageBuilder setAuthorative(boolean authorative) {
+			setFlag(authorative, AA_MASK);
+			return this;
+		}
+		
+		public DnsMessageBuilder setRecursionDesired(boolean recurse) {
+			setFlag(recurse, RD_MASK);
+			return this;
+		}
+		
+		public DnsMessageBuilder setRecursionAvailable(boolean availability) {
+			setFlag(availability, RA_MASK);
+			return this;
+		}
+		
+		public DnsMessageBuilder setZBit(boolean value) {
+			setFlag(value, Z_MASK);
+			return this;
+		}
+		
+		public DnsMessageBuilder setIsAuthenticatedData(boolean value) {
+			setFlag(value, AD_MASK);
+			return this;
+		}
+		
+		public DnsMessageBuilder setCheckingDisabled(boolean disabled) {
+			setFlag(disabled, CD_MASK);
+			return this;
+		}
+		
+		public DnsMessageBuilder setReturnCode(byte rcode) {
+			if (rcode > 15 || rcode < 0)
+				throw new IllegalArgumentException("Return code must be within the range (0, 2^4 - 1). Invalid value " + rcode);
+			this.flags = (this.flags & ~RCODE_MASK) | rcode;
+			return this;
+		}
+		
+		public DnsMessageBuilder ask(DnsQuery query) {
+			this.questions.add(query);
+			return this;
+		}
+		
+		public DnsMessageBuilder answer(DnsRecord answer) {
+			this.answers.add(answer);
+			return this;
+		}
+		
+		public DnsMessageBuilder addAuthority(DnsRecord authority) {
+			this.authorities.add(authority);
+			return this;
+		}
+		
+		public DnsMessageBuilder addAdditional(DnsRecord record) {
+			this.additional.add(record);
+			return this;
+		}
+		
+		public DnsMessage build() {
+			return new DnsMessage(this.id, this.flags,
+					this.questions.toArray(new DnsQuery[questions.size()]),
+					this.answers.toArray(new DnsRecord[this.answers.size()]),
+					this.authorities.toArray(new DnsRecord[this.authorities.size()]),
+					this.additional.toArray(new DnsRecord[this.additional.size()]));
+		}
+	}
 }
