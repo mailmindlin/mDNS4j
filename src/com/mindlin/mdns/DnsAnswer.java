@@ -1,42 +1,38 @@
 package com.mindlin.mdns;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 
 public class DnsAnswer {
 	public static DnsAnswer readNext(ByteBuffer buf) {
-		StringBuffer fqdn = new StringBuffer();
-		int len;
-		while ((len = buf.get() & 0xFF) > 0) {
-			if (fqdn.length() > 0)
-				fqdn.append('.');
-			byte[] tmp = new byte[len];
-			buf.get(tmp, 0, len);
-			fqdn.append(new String(tmp, 0, len, StandardCharsets.US_ASCII));
-		}
-		int delim = buf.get() & 0xFF;
+		FQDN fqdn = FQDN.readNext(buf);
 		DnsType type = DnsType.of(buf.getShort());// TODO lookup
 		DnsClass clazz = DnsClass.of(buf.getShort());
 		
-		len = buf.getShort() & 0xFF_FF;
+		int ttl = buf.getInt();
+		
+		//Get data
+		int len = buf.getShort() & 0xFF_FF;
 		byte[] data = new byte[len];
 		buf.get(data, 0, len);
-		return new DnsAnswer(fqdn.toString(), type, clazz, data);
+		
+		return new DnsAnswer(fqdn, type, clazz, ttl, data);
 	}
 	
-	protected final String name;
+	protected final FQDN name;
 	protected final DnsType type;
 	protected final DnsClass clazz;
+	protected final int ttl;
 	protected final byte[] data;
 	
-	public DnsAnswer(String name, DnsType type, DnsClass clazz, byte[] data) {
+	public DnsAnswer(FQDN name, DnsType type, DnsClass clazz, int ttl, byte[] data) {
 		this.name = name;
 		this.type = type;
 		this.clazz = clazz;
+		this.ttl = ttl;
 		this.data = data;
 	}
 	
-	public String getName() {
+	public FQDN getName() {
 		return this.name;
 	}
 	
@@ -48,7 +44,24 @@ public class DnsAnswer {
 		return this.clazz;
 	}
 	
+	public int getTTL() {
+		return this.ttl;
+	}
+	
 	public byte[] getData() {
 		return data;
+	}
+	
+	public int getSize() {
+		return getName().getSize() + 10 + getData().length;
+	}
+	
+	public void writeTo(ByteBuffer buf) {
+		this.getName().writeTo(buf);
+		buf.putShort(getType().getValue());
+		buf.putShort(getClazz().getValue());
+		buf.putInt(getTTL());
+		buf.putShort((short) getData().length);
+		buf.put(getData());
 	}
 }
