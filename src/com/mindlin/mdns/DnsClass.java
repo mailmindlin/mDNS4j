@@ -5,7 +5,10 @@ public enum DnsClass {
 	CS(2),
 	CH(3),
 	HS(4),
-	ANY(255);
+	NONE(254),
+	ANY(255),
+	IN_MDNS(0x8001),
+	;
 	
 	public static DnsClass of(short value) {
 		switch (value) {
@@ -17,9 +20,14 @@ public enum DnsClass {
 				return CH;
 			case 4:
 				return HS;
+			case 254:
+				return NONE;
 			case 255:
 				return ANY;
+			case (short) 0x8001:
+				return IN_MDNS;
 			default:
+				System.out.println("Unknown class #" + (value & 0xFFFF));
 				return null;
 		}
 	}

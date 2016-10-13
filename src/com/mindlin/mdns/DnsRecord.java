@@ -1,20 +1,18 @@
 package com.mindlin.mdns;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+
+import com.mindlin.mdns.rdata.RData;
 
 public class DnsRecord {
 	public static DnsRecord readNext(ByteBuffer buf) {
+		int st = buf.position();
 		FQDN fqdn = FQDN.readNext(buf);
-		DnsType type = DnsType.of(buf.getShort());// TODO lookup
+		short ts = buf.getShort();
+		DnsType type = DnsType.of(ts);
 		DnsClass clazz = DnsClass.of(buf.getShort());
-		
 		int ttl = buf.getInt();
-		
-		//Get data
-		int len = buf.getShort() & 0xFF_FF;
-		byte[] data = new byte[len];
-		buf.get(data, 0, len);
+		RData data = RData.readNext(type, buf);
 		
 		return new DnsRecord(fqdn, type, clazz, ttl, data);
 	}
@@ -23,9 +21,9 @@ public class DnsRecord {
 	protected final DnsType type;
 	protected final DnsClass clazz;
 	protected final int ttl;
-	protected final byte[] data;
+	protected final RData data;
 	
-	public DnsRecord(FQDN name, DnsType type, DnsClass clazz, int ttl, byte[] data) {
+	public DnsRecord(FQDN name, DnsType type, DnsClass clazz, int ttl, RData data) {
 		this.name = name;
 		this.type = type;
 		this.clazz = clazz;
@@ -49,12 +47,12 @@ public class DnsRecord {
 		return this.ttl;
 	}
 	
-	public byte[] getData() {
+	public RData getData() {
 		return data;
 	}
 	
 	public int getSize() {
-		return getName().getSize() + 10 + getData().length;
+		return getName().getSize() + 10 + getData().getLength();
 	}
 	
 	public void writeTo(ByteBuffer buf) {
@@ -62,8 +60,8 @@ public class DnsRecord {
 		buf.putShort(getType().getValue());
 		buf.putShort(getClazz().getValue());
 		buf.putInt(getTTL());
-		buf.putShort((short) getData().length);
-		buf.put(getData());
+		buf.putShort((short) getData().getLength());
+		getData().writeTo(buf);
 	}
 	
 	@Override
@@ -73,8 +71,8 @@ public class DnsRecord {
 				.append(",type:").append(getType())
 				.append(",class:").append(getClazz())
 				.append(",ttl:").append(getTTL())
-				.append(",dLen:").append(getData().length)
-				.append(",data:").append(Arrays.toString(getData()))
+				.append(",dLen:").append(getData().getLength())
+				.append(",data:").append(getData().toString())
 				.append('}')
 				.toString();
 	}

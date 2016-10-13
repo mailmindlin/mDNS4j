@@ -26,24 +26,37 @@ public class DnsMessage {
 		final int anCount = buf.getShort() & 0xFF_FF;
 		final int nsCount = buf.getShort() & 0xFF_FF;
 		final int arCount = buf.getShort() & 0xFF_FF;
+		System.out.println("Id: " + id + " Flags: " + flags + " QD: " + qdCount + " AN: " + anCount + " NS: " + nsCount + " AR: " + arCount);
 		
+		if (qdCount > 0)
+			System.out.println("Questions:");
 		DnsQuery[] questions = new DnsQuery[qdCount];
 		for (int i = 0; i < qdCount; i++)
 			questions[i] = DnsQuery.readNext(buf);
 		
+		if (anCount > 0)
+			System.out.println("Answers:");
 		DnsRecord[] answers = new DnsRecord[anCount];
 		for (int i = 0; i < anCount; i++)
 			answers[i] = DnsRecord.readNext(buf);
 		
-		DnsRecord[] authRecords = new DnsRecord[anCount];
+		if (nsCount > 0)
+			System.out.println("Authorities:");
+		DnsRecord[] authRecords = new DnsRecord[nsCount];
 		for (int i = 0; i < nsCount; i++)
 			authRecords[i] = DnsRecord.readNext(buf);
 
-		DnsRecord[] additional = new DnsRecord[anCount];
+		if (arCount > 0)
+			System.out.println("Additional:");
+		DnsRecord[] additional = new DnsRecord[arCount];
 		for (int i = 0; i < arCount; i++)
 			additional[i] = DnsRecord.readNext(buf);
 		
 		return new DnsMessage(id, flags, questions, answers, authRecords, additional);
+	}
+	
+	public static DnsMessageBuilder builder() {
+		return new DnsMessageBuilder();
 	}
 	
 	// See http://www.zytrax.com/books/dns/ch15/
@@ -70,8 +83,8 @@ public class DnsMessage {
 			DnsRecord[] authRecords, DnsRecord[] additionalRecords) {
 		this.id = id;
 		this.flags = flags;
-		this.questions = questions == null ? new DnsQuery[0] : questions;
-		this.answers = answers == null ? new DnsRecord[0] : answers;
+		this.questions = questions;
+		this.answers = answers;
 		this.authRecords = authRecords;
 		this.additionalRecords = additionalRecords;
 	}
@@ -124,10 +137,13 @@ public class DnsMessage {
 		int result = 12;// Header length
 		for (int i = 0, l = this.questions.length; i < l; i++)
 			result += this.questions[i].getSize();
+		
 		for (int i = 0, l = this.answers.length; i < l; i++)
 			result += this.answers[i].getSize();
+		
 		for (int i = 0, l = this.authRecords.length; i < l; i++)
 			result += this.authRecords[i].getSize();
+		
 		for (int i = 0, l = this.additionalRecords.length; i < l; i++)
 			result += this.additionalRecords[i].getSize();
 		return result;
@@ -157,7 +173,7 @@ public class DnsMessage {
 	public String toString() {
 		return new StringBuffer()
 			.append("DnsMessage{id:").append(this.id)
-			.append(",flags:").append(this.flags)
+			.append(",flags:").append(Integer.toBinaryString(this.flags))
 			.append(",qdCount:").append(this.questions.length)
 			.append(",anCount:").append(this.answers.length)
 			.append(",nsCount:").append(this.authRecords.length)

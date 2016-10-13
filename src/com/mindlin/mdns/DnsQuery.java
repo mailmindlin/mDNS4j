@@ -6,7 +6,7 @@ public class DnsQuery {
 	public static DnsQuery readNext(ByteBuffer buf) {
 		FQDN fqdn = FQDN.readNext(buf);
 		DnsType qType = DnsType.of(buf.getShort());
-		DnsClass qClass = DnsClass.of(buf.getShort());
+		short qClass = buf.getShort();
 		return new DnsQuery(fqdn, qType, qClass);
 	}
 	
@@ -16,9 +16,9 @@ public class DnsQuery {
 
 	protected final FQDN name;
 	protected final DnsType qType;
-	protected final DnsClass qClass;
+	protected final short qClass;
 
-	public DnsQuery(FQDN fqdn, DnsType qType, DnsClass qClass) {
+	public DnsQuery(FQDN fqdn, DnsType qType, short qClass) {
 		this.name = fqdn;
 		this.qType = qType;
 		this.qClass = qClass;
@@ -31,9 +31,16 @@ public class DnsQuery {
 	public DnsType getType() {
 		return this.qType;
 	}
+	
+	public String getQclassStr() {
+		DnsClass r = DnsClass.of(qClass);
+		if (r == null)
+			return "" + qClass;
+		return r.toString();
+	}
 
 	public DnsClass getQCLASS() {
-		return this.qClass;
+		return DnsClass.of(this.qClass);
 	}
 
 	public int getSize() {
@@ -51,7 +58,7 @@ public class DnsQuery {
 		return new StringBuffer()
 				.append("DnsQuery{name:").append(name.toString())
 				.append(",type:").append(getType())
-				.append(",class:").append(getQCLASS())
+				.append(",class:").append(getQclassStr())
 				.append('}')
 				.toString();
 	}
@@ -59,7 +66,7 @@ public class DnsQuery {
 	public static class DnsQueryBuilder {
 		FQDN name;
 		DnsType type;
-		DnsClass clazz = DnsClass.IN;
+		short clazz = DnsClass.IN.value;
 		
 		public DnsQueryBuilder() {
 			
@@ -90,11 +97,12 @@ public class DnsQuery {
 		}
 		
 		public DnsQueryBuilder setClass(short clazz) {
-			return setClass(DnsClass.of(clazz));
+			this.clazz = clazz;
+			return this;
 		}
 		
 		public DnsQueryBuilder setClass(DnsClass clazz) {
-			this.clazz = clazz;
+			this.clazz = clazz.value;
 			return this;
 		}
 		

@@ -8,49 +8,272 @@ package com.mindlin.mdns;
 public enum DnsType {
 	//Record types
 	A(1),
-	AAAA(28),
-	AFSDB(18),
-	APL(42),
-	CAA(257),
-	CDNSKEY(60),
-	CDS(59),
-	CERT(37),
-	CNAME(5),
-	DHCID(49),
-	DLV(32769),
-	DNAME(39),
-	DNSKEY(48),
-	DS(43),
-	HIP(55),
-	IPSECKEY(45),
-	KEY(25),
-	KX(36),
-	LOC(29),
-	MX(15),
-	NAPTR(35),
 	NS(2),
+	/**
+	 * Mail destination
+	 * @deprecated Use {@link #MX}
+	 */
+	MD(3),
+	/**
+	 * Mail forwarder
+	 * @deprecated Use {@link #MX}
+	 */
+	MF(4),
+	/**
+	 * Canonical name for an alias
+	 */
+	CNAME(5),
+	/**
+	 * Marks the start of a zone of authority
+	 */
+	SOA(6),
+	/**
+	 * a mailbox domain name (EXPERIMENTAL)
+	 */
+	MB(7),
+	/**
+	 * a mail group member (EXPERIMENTAL)
+	 */
+	MG(8),
+	/**
+	 * a mail rename domain name (EXPERIMENTAL)
+	 */
+	MR(9),
+	/**
+	 * a null RR (EXPERIMENTAL)
+	 */
+	NULL(10),
+	/**
+	 * a well known service description
+	 */
+	WKS(11),
+	/**
+	 * A domain name pointer
+	 */
+	PTR(12),
+	/**
+	 * host information
+	 */
+	HINFO(13),
+	/**
+	 * Mailbox or mail list information
+	 */
+	MINFO(14),
+	/**
+	 * Mail eXchange
+	 */
+	MX(15),
+	/**
+	 * Text strings
+	 */
+	TXT(16),
+	/**
+	 * for Responsible Person
+	 */
+	RP(17),
+	/**
+	 * for AFS Data Base location
+	 */
+	AFSDB(18),
+	/**
+	 * for X.25 PSDN address
+	 */
+	X25(19),
+	/**
+	 * for ISDN address
+	 */
+	ISDN(20),
+	/**
+	 * for Route Through
+	 */
+	RT(21),
+	/**
+	 * for NSAP address, NSAP style A record
+	 */
+	NSAP(22),
+	/**
+	 * for domain name pointer, NSAP style
+	 */
+	NSAP_PTR(23),
+	/**
+	 * for security signature
+	 */
+	SIG(24),
+	/**
+	 * for security signature
+	 */
+	KEY(25),
+	/**
+	 * X.400 mail mapping information
+	 */
+	PX(26),
+	/**
+	 * Geographical Position
+	 */
+	GPOS(27),
+	/**
+	 * IP6 address
+	 */
+	AAAA(28),
+	/**
+	 * Location information
+	 */
+	LOC(29),
+	/**
+	 * @deprecated
+	 */
+	NXT(30),
+	/**
+	 * Endpoint Identifier
+	 */
+	EID(31),
+	/**
+	 * Nimrod Locator
+	 */
+	NIMLOC(32),
+	/**
+	 * Server selection
+	 */
+	SRV(33),
+	/**
+	 * ATM address
+	 */
+	ATMA(34),
+	/**
+	 * Naming Authority Pointer
+	 */
+	NAPTR(35),
+	/**
+	 * Key Exchanger
+	 */
+	KX(36),
+	CERT(37),
+	/**
+	 * @deprecated Use {@link #AAAA}
+	 */
+	A6(38),
+	DNAME(39),
+	SINK(40),
+	OPT(41),
+	APL(42),
+	/**
+	 * Delegation Signer
+	 */
+	DS(43),
+	/**
+	 * SSH Key Fingerprint
+	 */
+	SSHFP(44),
+	IPSECKEY(45),
+	RRSIG(46),
 	NSEC(47),
+	DNSKEY(48),
+	DHCID(49),
 	NSEC3(50),
 	NSEC3PARAM(51),
-	PTR(12),
-	RRSIG(46),
-	RP(17),
-	SIG(24),
-	SOA(6),
-	SRV(33),
-	SSHFP(44),
-	TA(32768),
-	TKEY(249),
 	TLSA(52),
+	/**
+	 * S/MIME cert association
+	 */
+	SMIMEA(53),
+	//54 Unassigned
+	/**
+	 * Host Identity Protocol
+	 */
+	HIP(55),
+	NINFO(56),
+	RKEY(57),
+	/**
+	 * Trust Anchor LINK
+	 */
+	TALINK(58),
+	/**
+	 * Child DS
+	 */
+	CDS(59),
+	/**
+	 * DNSKEY(s) the Child wants reflected in DS
+	 */
+	CDNSKEY(60),
+	/**
+	 * OpenPGP key
+	 */
+	OPENPGPKEY(61),
+	/**
+	 * Child-to-parent synchronization
+	 */
+	CSYNC(62),
+	//63-98 Unassigned
+	UINFO(100),
+	UID(101),
+	GID(102),
+	UNSPEC(103),
+	NID(104),
+	L32(105),
+	L64(106),
+	LP(107),
+	/**
+	 * EUI-48 address
+	 */
+	EUI48(108),
+	/**
+	 * EUI-64 address
+	 */
+	EUI64(109),
+	//110-248 Unassigned
+	/**
+	 * Transaction key
+	 */
+	TKEY(249),
+	/**
+	 * Transaction signature
+	 */
 	TSIG(250),
-	TXT(16),
-	URI(256),
-	
-	//Other types
-	ANY(255),
-	AXFR(252),
+	/**
+	 * Incremental transfer
+	 */
 	IXFR(251),
-	OPT(41),
+	/**
+	 * Transfer of an entire zone
+	 */
+	AXFR(252),
+	/**
+	 * mailbox-related RRs (MB, MG or MR)
+	 */
+	MAILB(253),
+	/**
+	 * mail agent RRs
+	 * @deprecated Use {@link #MX}
+	 */
+	MAILA(254),
+	/**
+	 * A request for all records the server/cache has available
+	 */
+	ANY(255),
+	/**
+	 * URI
+	 */
+	URI(256),
+	/**
+	 * Certification Authority Restriction
+	 */
+	CAA(257),
+	/**
+	 * Application Visibility and Control
+	 */
+	AVC(258),
+	//259-32767 Unassigned
+	/**
+	 * DNSSEC Trust Authorities
+	 */
+	TA(32768),
+	/**
+	 * DNSSEC Lookaside Validation
+	 */
+	DLV(32769),
+	// 32770-65279 Unassigned
+	// 65280-65534 Private use
+	// 65535 Reserved
 	;
 	
 	public static DnsType of(short value) {

@@ -3,19 +3,35 @@ package com.mindlin.mdns;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 
 public class FQDN {
 	public static FQDN readNext(ByteBuffer buf) {
+		List<String> labels = readLabels(buf);
+		return new FQDN(labels.toArray(new String[labels.size()]));
+	}
+	
+	private static List<String> readLabels(ByteBuffer buf) {
 		int len;
 		ArrayList<String> labels = new ArrayList<String>();
 		byte[] tmp = new byte[63];
 		while ((len = buf.get() & 0xFF) > 0) {
-			if (len > 63)
-				throw new IllegalArgumentException("Illegal length for FQDN label: " + len);
+			if (len > 191) {
+				//TODO remove recursion
+				//Thanks to publib.boulder.ibm.com/html/as400/v4r5/ic2979/info/RZAB6DNSFORMAT.HTM
+				ByteBuffer dup = buf.duplicate();
+				int offset = ((len & 63) << 8) | (buf.get() & 0xFF);
+//				System.out.print("/O(" + offset + "," + buf.position() + "){");
+				dup.position(offset);
+				labels.addAll(readLabels(dup));
+//				System.out.print('}');
+				return labels;
+			}
+//			System.out.print("/L(" + len + "," + buf.position()+")");
 			buf.get(tmp, 0, len);
 			labels.add(new String(tmp, 0, len, StandardCharsets.US_ASCII));
 		}
-		return new FQDN(labels.toArray(new String[labels.size()]));
+		return labels;
 	}
 
 	protected transient String toStringCache = null;
@@ -36,7 +52,8 @@ public class FQDN {
 			StringBuffer sb = new StringBuffer(getSize() - 1);
 			for (int i = 0, l = this.labels.length; i < l; i++)
 				sb.append(labels[i]).append('.');
-			sb.setLength(sb.length() - 1);
+			if (sb.length() > 0)
+				sb.setLength(sb.length() - 1);
 			this.toStringCache = sb.toString();
 		}
 		return this.toStringCache;
@@ -44,9 +61,9 @@ public class FQDN {
 
 	public int getSize() {
 		final int l = this.labels.length;
-		int len = l;
+		int len = l + 1;
 		for (int i = 0; i < l; i++)
-			len += labels[i].length();
+			len += labels[i].getBytes(StandardCharsets.US_ASCII).length;
 		return len;
 	}
 
