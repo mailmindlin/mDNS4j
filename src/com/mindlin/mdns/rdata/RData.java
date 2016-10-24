@@ -28,6 +28,8 @@ public interface RData {
 				return new SoaRDATA(slice);
 			case TXT:
 				return new TxtRDATA(slice);
+			case SRV:
+				return new SrvRDATA(slice);
 			case CNAME:
 			case MB:
 			case MD:
