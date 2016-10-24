@@ -17,10 +17,8 @@ public interface RData {
 			case A:
 			case AAAA:
 			case NULL:
-				System.out.println("byte array");
 				return new ByteArrayRDATA(slice);
 			case HINFO:
-				System.out.println("hinfo");
 				return new HinfoRDATA(slice);
 			case MX:
 				return new MxRDATA(slice);
@@ -28,6 +26,8 @@ public interface RData {
 				return new MinfoRDATA(slice);
 			case SOA:
 				return new SoaRDATA(slice);
+			case TXT:
+				return new TxtRDATA(slice);
 			case CNAME:
 			case MB:
 			case MD:
@@ -36,12 +36,11 @@ public interface RData {
 			case MR:
 			case NS:
 			case PTR:
-			case TXT://Is this right?
 				return new FqdnRDATA(slice);
 			case WKS:
 				//TODO finish these
 			default:
-				System.out.println("byte arrayx");
+				System.out.println("Defaulting to byte array (unsupported type " + type + ", len " + len + ", rem " + slice.remaining() + ")");
 				return new ByteArrayRDATA(slice);
 		}
 	}

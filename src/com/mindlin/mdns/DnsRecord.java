@@ -6,7 +6,6 @@ import com.mindlin.mdns.rdata.RData;
 
 public class DnsRecord {
 	public static DnsRecord readNext(ByteBuffer buf) {
-		int st = buf.position();
 		FQDN fqdn = FQDN.readNext(buf);
 		short ts = buf.getShort();
 		DnsType type = DnsType.of(ts);

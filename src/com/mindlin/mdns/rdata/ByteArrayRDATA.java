@@ -7,7 +7,7 @@ public class ByteArrayRDATA implements RData {
 	
 	public ByteArrayRDATA(ByteBuffer buf) {
 		this.data = new byte[buf.remaining()];
-		buf.get(this.data, 0, this.data.length);
+		buf.get(this.data);
 	}
 	
 	public ByteArrayRDATA(byte[] data) {
