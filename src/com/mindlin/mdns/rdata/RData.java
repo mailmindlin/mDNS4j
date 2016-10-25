@@ -16,6 +16,7 @@ public interface RData {
 		switch (type) {
 			case A:
 			case AAAA:
+				return new AddressRDATA(slice);
 			case NULL:
 				return new ByteArrayRDATA(slice);
 			case HINFO:
