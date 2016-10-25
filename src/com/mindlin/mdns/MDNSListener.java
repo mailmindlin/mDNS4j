@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-public class MDNSListener implements Runnable {
+public class MDNSListener implements Runnable, Closeable {
 	private static InetAddress lookup(String host, int... addr) {
 		try {
 			byte[] bAddr = new byte[addr.length];
@@ -33,19 +33,22 @@ public class MDNSListener implements Runnable {
 	public static final InetAddress MDNS_IP6_ADDR = lookup("FF02::FB", 0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFB);
 	
 	protected final SocketAddress group;
-	protected final AtomicReference<MulticastSocket> socket;
+	protected final AtomicReference<MulticastSocket> socket = new AtomicReference<>(null);
 	protected final NetworkInterface netIf;
 	protected Consumer<DnsMessage> handler = this::defaultHandler;
 	
 	public MDNSListener() throws SecurityException, IOException {
-		this(new InetSocketAddress(MDNS_IP4_ADDR, MDNS_PORT), null);
+		this(null);
+	}
+	
+	public MDNSListener(NetworkInterface netIf) throws SecurityException, IOException {
+		this(new InetSocketAddress(MDNS_IP4_ADDR, MDNS_PORT), netIf);
 	}
 	
 	public MDNSListener(SocketAddress group, NetworkInterface netIf) throws SecurityException, IOException {
-		System.out.println("Connecting via group=" + group);
+		System.out.println("Connecting via group " + group);
 		this.group = group;
 		this.netIf = netIf;
-		this.socket = new AtomicReference<>(null);
 		this.resetSocket();
 	}
 	
@@ -53,7 +56,7 @@ public class MDNSListener implements Runnable {
 		this.handler = handler;
 	}
 	
-	protected void resetSocket() throws IOException {
+	protected synchronized void resetSocket() throws IOException {
 		MulticastSocket newSocket = new MulticastSocket();
 		newSocket.setLoopbackMode(false);
 		newSocket.setReuseAddress(true);
@@ -163,5 +166,12 @@ public class MDNSListener implements Runnable {
 			this.resetSocket();
 			sendPacket(packet, false);
 		}
+	}
+	
+	@Override
+	public void close() {
+		MulticastSocket socket = this.socket.getAndSet(null);
+		if (socket != null)
+			socket.close();
 	}
 }
