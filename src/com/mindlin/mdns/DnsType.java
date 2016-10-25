@@ -282,12 +282,30 @@ public enum DnsType {
 				return A;
 			case 2:
 				return NS;
+			case 3:
+				return MD;
+			case 4:
+				return MF;
 			case 5:
 				return CNAME;
 			case 6:
 				return SOA;
+			case 7:
+				return MB;
+			case 8:
+				return MG;
+			case 9:
+				return MR;
+			case 10:
+				return NULL;
+			case 11:
+				return WKS;
 			case 12:
 				return PTR;
+			case 13:
+				return HINFO;
+			case 14:
+				return MINFO;
 			case 15:
 				return MX;
 			case 16:
@@ -296,22 +314,46 @@ public enum DnsType {
 				return RP;
 			case 18:
 				return AFSDB;
+			case 19:
+				return X25;
+			case 20:
+				return ISDN;
+			case 21:
+				return RT;
+			case 22:
+				return NSAP;
+			case 23:
+				return NSAP_PTR;
 			case 24:
 				return SIG;
 			case 25:
 				return KEY;
+			case 26:
+				return PX;
+			case 27:
+				return GPOS;
 			case 28:
 				return AAAA;
 			case 29:
 				return LOC;
+			case 30:
+				return NXT;
+			case 31:
+				return EID;
+			case 32:
+				return NIMLOC;
 			case 33:
 				return SRV;
+			case 34:
+				return ATMA;
 			case 35:
 				return NAPTR;
 			case 36:
 				return KX;
 			case 37:
 				return CERT;
+			case 38:
+				return A6;
 			case 39:
 				return DNAME;
 			case 41:
@@ -338,12 +380,41 @@ public enum DnsType {
 				return NSEC3PARAM;
 			case 52:
 				return TLSA;
+			case 53:
+				return SMIMEA;
+				//54 unassigned
 			case 55:
 				return HIP;
+			case 56:
+				return NINFO;
+			case 57:
+				return RKEY;
+			case 58:
+				return TALINK;
 			case 59:
 				return CDS;
 			case 60:
 				return CDNSKEY;
+			case 61:
+				return OPENPGPKEY;
+			case 62:
+				return CSYNC;
+			case 100:
+				return UINFO;
+			case 101:
+				return UID;
+			case 102:
+				return GID;
+			case 103:
+				return UNSPEC;
+			case 104:
+				return NID;
+			case 105:
+				return L32;
+			case 106:
+				return L64;
+			case 107:
+				return LP;
 			case 249:
 				return TKEY;
 			case 250:
@@ -363,6 +434,7 @@ public enum DnsType {
 			case (short) 32769:
 				return DLV;
 			default:
+				System.err.println("Unknown type 0x" + Integer.toString(value, 10));
 				return null;
 		}
 	}
