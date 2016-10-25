@@ -39,6 +39,14 @@ public class MinfoRDATA implements RData {
 		this.eMailbox = eMailbox;
 	}
 	
+	public FQDN getRMailbox() {
+		return this.rMailbox;
+	}
+	
+	public FQDN getEMailbox() {
+		return this.eMailbox;
+	}
+	
 	@Override
 	public int getLength() {
 		return this.rMailbox.getSize() + this.eMailbox.getSize();

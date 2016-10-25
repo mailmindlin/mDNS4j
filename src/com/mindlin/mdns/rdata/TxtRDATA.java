@@ -28,6 +28,14 @@ public class TxtRDATA implements RData {
 		this.data = data;
 	}
 	
+	public Map<String, String> getMap() {
+		return this.data;
+	}
+	
+	public String getEntry(String key) {
+		return data.get(key);
+	}
+	
 	@Override
 	public int getLength() {
 		int len = 0;

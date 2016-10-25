@@ -58,16 +58,43 @@ public class SoaRDATA implements RData {
 		this.minimum = minimum;
 	}
 	
+	public FQDN getMName() {
+		return mName;
+	}
+	public FQDN getRName() {
+		return rName;
+	}
+	public int getSerial() {
+		return serial;
+	}
+	public int getRefresh() {
+		return refresh;
+	}
+	public int getRetry() {
+		return retry;
+	}
+	public int getExpire() {
+		return expire;
+	}
+	public int getMinimum() {
+		return minimum;
+	}
 	@Override
 	public int getLength() {
-		// TODO Auto-generated method stub
-		return 0;
+		return mName.getSize() + rName.getSize() + 4 + 4 + 4 + 4 + 4;
 	}
 	
 	@Override
 	public void writeTo(ByteBuffer buf) {
-		// TODO Auto-generated method stub
-		
+		buf.putShort((short) getLength());
+		mName.writeTo(buf);
+		rName.writeTo(buf);
+		buf.putInt(this.getSerial());
+		buf.putInt(this.getRefresh());
+		buf.putInt(this.getRefresh());
+		buf.putInt(this.getRetry());
+		buf.putInt(this.getExpire());
+		buf.putInt(this.getMinimum());
 	}
 	
 }

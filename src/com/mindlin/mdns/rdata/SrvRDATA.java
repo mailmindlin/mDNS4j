@@ -35,15 +35,16 @@ public class SrvRDATA implements RData {
 	public int getPort() {
 		return this.port;
 	}
+	
 	public FQDN getTarget() {
 		return this.target;
 	}
-
+	
 	@Override
 	public int getLength() {
 		return 2 + 2 + 2 + getTarget().getSize();
 	}
-
+	
 	@Override
 	public void writeTo(ByteBuffer buf) {
 		buf.putShort((short) getLength());

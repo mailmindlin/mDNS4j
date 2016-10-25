@@ -25,6 +25,14 @@ public class MxRDATA implements RData {
 		this.exchange = exchange;
 	}
 	
+	public short getPreference() {
+		return this.preference;
+	}
+	
+	public FQDN getExchange() {
+		return this.exchange;
+	}
+	
 	@Override
 	public int getLength() {
 		return 2 + exchange.getSize();
