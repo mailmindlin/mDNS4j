@@ -8,6 +8,8 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
+import com.mindlin.mdns.rdata.DnsUtils;
+
 public class MDNSListener implements Runnable {
 	private static InetAddress lookup(String host, int... addr) {
 		try {
@@ -24,7 +26,7 @@ public class MDNSListener implements Runnable {
 	/**
 	 * IP4 multicast address.
 	 */
-	public static final InetAddress MDNS_IP4_ADDR = lookup("224.0.0.251", (byte) 224, 0x00, (byte) 0x00, (byte) 251);
+	public static final InetAddress MDNS_IP4_ADDR = lookup("224.0.0.251", 224, 0, 0, 251);
 	public static final InetAddress MDNS_IP6_ADDR = lookup("FF02::FB", 0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFB);
 	
 	protected final InetAddress group;
@@ -64,15 +66,19 @@ public class MDNSListener implements Runnable {
 			buf.position(packet.getOffset());
 			buf.mark();
 			buf.limit(packet.getLength());
-			System.out.println(buf.remaining());
-			char[] hexChars = "0123456789ABCDEF".toCharArray();
-			for (int i = 0, l = buf.remaining(); i < l; i++) {
-				int b = buf.get() & 0xFF;
-				System.out.print(hexChars[b >>> 4]);
-				System.out.print(hexChars[b & 0xF]);
-				System.out.print(' ');
-				if (i % 32 == 31)
-					System.out.println();
+			if (DnsUtils.DEBUG) {
+				System.out.println(buf.remaining());
+				char[] hexChars = "0123456789ABCDEF".toCharArray();
+				for (int i = 0, l = buf.remaining(); i < l; i++) {
+					int b = buf.get() & 0xFF;
+					System.out.print(hexChars[b >>> 4]);
+					System.out.print(hexChars[b & 0xF]);
+					System.out.print(' ');
+					if (i % 32 == 31)
+						System.out.println();
+				}
+				System.out.println();
+				buf.flip();
 			}
 			System.out.println();
 			buf.flip();
@@ -90,23 +96,40 @@ public class MDNSListener implements Runnable {
 	
 	public void defaultHandler(DnsMessage message) {
 		System.out.println(message);
+		System.out.print("\tFLAG ");
+		if (message.isResponse())
+			System.out.print("QR ");
+		if (message.isAuthorative())
+			System.out.print("AA ");
+		if (message.isTruncated())
+			System.out.print("TC ");
+		if (message.isRecursionDesired())
+			System.out.print("RD ");
+		if (message.isRecursionAvailable())
+			System.out.print("RA ");
+		if (message.getZBit())
+			System.out.print("Z  ");
+		if (message.isAuthenticatedData())
+			System.out.print("AD ");
+		if (message.isCheckingDisabled())
+			System.out.print("CD");
+		System.out.println();
 		for (int i = 0; i < message.questions.length; i++) {
 			DnsQuery question = message.questions[i];
-			System.out.println("QUERY " + question.getName().toString() + '\t' + question.getQclassStr() + '\t' + question.getType());
+			System.out.println("\tQUERY\t" + question.getName().toString() + '\t' + question.getQclassStr() + '\t' + question.getType());
 		}
 		for (int i = 0; i < message.answers.length; i++) {
 			DnsRecord answer = message.answers[i];
-			System.out.println("RESP " + answer.getName().toString() + '\t' + answer.getClazz() + '\t' + answer.getType() + '\t' + answer.getData());
+			System.out.println("\tRESP\t" + answer.getName().toString() + '\t' + answer.getClazz() + '\t' + answer.getType() + '\t' + answer.getData());
 		}
 		for (int i = 0; i < message.authRecords.length; i++) {
 			DnsRecord answer = message.authRecords[i];
-			System.out.println("AUTH " + answer.getName().toString() + '\t' + answer.getClazz() + '\t' + answer.getType());
+			System.out.println("\tAUTH\t" + answer.getName().toString() + '\t' + answer.getClazz() + '\t' + answer.getType());
 		}
 		for (int i = 0; i < message.additionalRecords.length; i++) {
 			DnsRecord answer = message.additionalRecords[i];
-			System.out.println("ADDTL " + answer.getName().toString() + '\t' + answer.getClazz() + '\t' + answer.getType());
+			System.out.println("\tADDTL\t" + answer.getName().toString() + '\t' + answer.getClazz() + '\t' + answer.getType());
 		}
-		System.out.println("DONE");
 	}
 	
 	public void query(String fqdn) throws IOException {
