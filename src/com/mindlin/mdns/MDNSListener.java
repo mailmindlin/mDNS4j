@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
@@ -29,21 +31,46 @@ public class MDNSListener implements Runnable {
 	public static final InetAddress MDNS_IP4_ADDR = lookup("224.0.0.251", 224, 0, 0, 251);
 	public static final InetAddress MDNS_IP6_ADDR = lookup("FF02::FB", 0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFB);
 	
+	protected final Object socketLock = new Object();
 	protected final InetAddress group;
 	protected final int port;
-	protected final MulticastSocket socket;
+	protected volatile MulticastSocket socket;
 	protected Consumer<DnsMessage> handler = this::defaultHandler;
+	protected final NetworkInterface iface;
 	
 	public MDNSListener() throws SecurityException, IOException {
 		this(MDNS_IP4_ADDR, MDNS_PORT);
 	}
 	
+	public MDNSListener(NetworkInterface iface) throws SecurityException, IOException {
+		this(iface, MDNS_IP4_ADDR, MDNS_PORT);
+	}
 	public MDNSListener(InetAddress group, int port) throws SecurityException, IOException {
+		this(null, group, port);
+	}
+	
+	public MDNSListener(NetworkInterface iface, InetAddress group, int port) throws SecurityException, IOException {
 		System.out.println("Connecting via group=" + group + ":" + port);
 		this.group = group;
 		this.port = port;
-		this.socket = new MulticastSocket();
-		this.socket.joinGroup(group);
+		this.iface = iface;
+		this.resetSocket();
+	}
+	
+	protected void resetSocket() throws IOException {
+		System.out.println("Resetting");
+		MulticastSocket socket = this.socket;
+		synchronized (socketLock) {
+			if (socket != null) {
+				socket.disconnect();
+				socket.close();
+			}
+			socket = new MulticastSocket();
+			if (this.iface != null)
+				socket.setNetworkInterface(this.iface);
+			socket.joinGroup(this.group);
+			this.socket = socket;
+		}
 	}
 	
 	public void setHandler(Consumer<DnsMessage> handler) {
@@ -58,7 +85,17 @@ public class MDNSListener implements Runnable {
 			buf.clear();
 			packet.setLength(512);
 			try {
-				this.socket.receive(packet);
+				while (true) {
+					MulticastSocket socket;
+					synchronized (this.socketLock) {
+						socket = this.socket;
+					}
+					try {
+						socket.receive(packet);
+						break;
+					} catch (SocketTimeoutException e) {
+					}
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				break;
@@ -80,8 +117,6 @@ public class MDNSListener implements Runnable {
 				System.out.println();
 				buf.flip();
 			}
-			System.out.println();
-			buf.flip();
 			DnsMessage message;
 			try {
 				message = DnsMessage.parse(buf);
@@ -144,6 +179,18 @@ public class MDNSListener implements Runnable {
 		ByteBuffer buf = ByteBuffer.allocate(size);
 		message.writeTo(buf);
 		DatagramPacket packet = new DatagramPacket(buf.array(), 0, size, this.group, this.port);
-		this.socket.send(packet);
+		try {
+			MulticastSocket socket;
+			synchronized (socketLock) {
+				socket = this.socket;
+			}
+			socket.send(packet);
+		} catch (IOException e) {
+			this.resetSocket();
+			synchronized (socketLock) {
+				socket = this.socket;
+			}
+			socket.send(packet);
+		}
 	}
 }
