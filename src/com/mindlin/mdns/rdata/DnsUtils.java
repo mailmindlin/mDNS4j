@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class DnsUtils {
+	public static final boolean DEBUG = false;
 	public static String readCharacterString(ByteBuffer buf) {
 		StringBuffer sb = new StringBuffer();
 		byte b = buf.get();
@@ -43,5 +44,16 @@ public class DnsUtils {
 		buf.put(bytes, 0, bytes.length);
 	}
 	
+	public static String toHexString(byte[] data, char separator) {
+		StringBuffer sb = new StringBuffer(data.length * 3 + 1);
+		for (int i = 0; i < data.length; i++) {
+			int b = data[i] & 0xFF;
+			sb.append(DnsUtils.hexChars[b >>> 4]);
+			sb.append(DnsUtils.hexChars[b & 0xF]);
+			sb.append(separator);
+		}
+		sb.setLength(sb.length() - 1);
+		return sb.toString();
+	}
 	public static final char[] hexChars = "0123456789ABCDEF".toCharArray();
 }

@@ -27,17 +27,6 @@ public class ByteArrayRDATA implements RData {
 	
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer(data.length * 3 + 1);
-		sb.append('[');
-		for (int i = 0; i < data.length; i++) {
-			int b = this.data[i] & 0xFF;
-			sb.append(DnsUtils.hexChars[b >>> 4]);
-			sb.append(DnsUtils.hexChars[b & 0xF]);
-			sb.append(' ');
-		}
-		if (data.length > 0)
-			sb.setLength(sb.length() - 1);
-		sb.append(']');
-		return sb.toString();
+		return '[' + DnsUtils.toHexString(this.data, ' ') + ']';
 	}
 }
