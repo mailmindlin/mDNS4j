@@ -43,6 +43,8 @@ public class FQDN {
 	}
 
 	public FQDN(String... labels) {
+		if (labels == null)
+			throw new NullPointerException("Labels must not be null");
 		this.labels = labels;
 	}
 
@@ -74,5 +76,18 @@ public class FQDN {
 			buf.put(label);
 		}
 		buf.put((byte) 0);
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o == null || !(o instanceof FQDN))
+			return false;
+		FQDN other = (FQDN) o;
+		if (other.labels.length != this.labels.length)
+			return false;
+		for (int i = 0, l = this.labels.length; i < l; i++)
+			if (this.labels[i] == null ? other.labels[i] != null : !this.labels[i].equals(other.labels[i]))
+				return false;
+		return true;
 	}
 }
