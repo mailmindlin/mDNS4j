@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.mindlin.mdns.rdata.DnsUtils;
+
 public class DnsMessage {
 	//Masks for the flags
 	public static final int QR_MASK = 1 << 15;
@@ -18,6 +20,7 @@ public class DnsMessage {
 	public static final int CD_MASK = 1 << 4;
 	public static final int RCODE_MASK = 0b1111;
 	
+	@SuppressWarnings("unused")
 	public static DnsMessage parse(ByteBuffer buf) {
 		// See http://www.networksorcery.com/enp/protocol/dns.htm
 		final int id = buf.getShort() & 0xFF_FF;
@@ -26,27 +29,28 @@ public class DnsMessage {
 		final int anCount = buf.getShort() & 0xFF_FF;
 		final int nsCount = buf.getShort() & 0xFF_FF;
 		final int arCount = buf.getShort() & 0xFF_FF;
-		System.out.println("Id: " + id + " Flags: " + flags + " QD: " + qdCount + " AN: " + anCount + " NS: " + nsCount + " AR: " + arCount);
+		if (DnsUtils.DEBUG)
+			System.out.println("Id: " + id + " Flags: " + flags + " QD: " + qdCount + " AN: " + anCount + " NS: " + nsCount + " AR: " + arCount);
 		
-		if (qdCount > 0)
+		if (qdCount > 0 && DnsUtils.DEBUG)
 			System.out.println("Questions:");
 		DnsQuery[] questions = new DnsQuery[qdCount];
 		for (int i = 0; i < qdCount; i++)
 			questions[i] = DnsQuery.readNext(buf);
 		
-		if (anCount > 0)
+		if (anCount > 0 && DnsUtils.DEBUG)
 			System.out.println("Answers:");
 		DnsRecord[] answers = new DnsRecord[anCount];
 		for (int i = 0; i < anCount; i++)
 			answers[i] = DnsRecord.readNext(buf);
 		
-		if (nsCount > 0)
+		if (nsCount > 0 && DnsUtils.DEBUG)
 			System.out.println("Authorities:");
 		DnsRecord[] authRecords = new DnsRecord[nsCount];
 		for (int i = 0; i < nsCount; i++)
 			authRecords[i] = DnsRecord.readNext(buf);
 
-		if (arCount > 0)
+		if (arCount > 0 && DnsUtils.DEBUG)
 			System.out.println("Additional:");
 		DnsRecord[] additional = new DnsRecord[arCount];
 		for (int i = 0; i < arCount; i++)
@@ -70,6 +74,7 @@ public class DnsMessage {
 	 * Answer section
 	 */
 	protected final DnsRecord[] answers;
+
 	/**
 	 * Authority section
 	 */
@@ -93,7 +98,7 @@ public class DnsMessage {
 		return this.id;
 	}
 	
-	public boolean isQuery() {
+	public boolean isResponse() {
 		return (this.flags & QR_MASK) != 0;
 	}
 	
@@ -131,6 +136,22 @@ public class DnsMessage {
 	
 	public byte getReturnCode() {
 		return (byte) (this.flags & RCODE_MASK);
+	}
+	
+	public DnsQuery[] getQuestions() {
+		return questions;
+	}
+
+	public DnsRecord[] getAnswers() {
+		return answers;
+	}
+
+	public DnsRecord[] getAuthRecords() {
+		return authRecords;
+	}
+
+	public DnsRecord[] getAdditionalRecords() {
+		return additionalRecords;
 	}
 	
 	public int getSize() {
