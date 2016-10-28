@@ -3,9 +3,11 @@ package com.mindlin.mdns.rdata;
 import java.nio.ByteBuffer;
 
 import com.mindlin.mdns.DnsType;
+import com.mindlin.mdns.FQDN;
 
 public interface RData {
-	public static RData readNext(DnsType type, ByteBuffer buf) {
+	@SuppressWarnings("deprecation")
+	public static RData readNext(DnsType type, ByteBuffer buf, FQDN name) {
 		final int len = buf.getShort() & 0xFFFF;
 //		System.out.println("Len: " + len);
 		ByteBuffer slice = buf.duplicate();
@@ -16,7 +18,7 @@ public interface RData {
 		switch (type) {
 			case A:
 			case AAAA:
-				return new AddressRDATA(slice);
+				return new AddressRDATA(slice, name.toString());
 			case NULL:
 				return new ByteArrayRDATA(slice);
 			case HINFO:

@@ -6,14 +6,14 @@ import com.mindlin.mdns.rdata.RData;
 
 public class DnsRecord {
 	public static DnsRecord readNext(ByteBuffer buf) {
-		FQDN fqdn = FQDN.readNext(buf);
+		FQDN name = FQDN.readNext(buf);
 		short ts = buf.getShort();
 		DnsType type = DnsType.of(ts);
 		DnsClass clazz = DnsClass.of(buf.getShort());
 		int ttl = buf.getInt();
-		RData data = RData.readNext(type, buf);
+		RData data = RData.readNext(type, buf, name);
 		
-		return new DnsRecord(fqdn, type, clazz, ttl, data);
+		return new DnsRecord(name, type, clazz, ttl, data);
 	}
 	
 	protected final FQDN name;

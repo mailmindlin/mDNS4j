@@ -6,25 +6,32 @@ import java.nio.ByteBuffer;
 
 public class AddressRDATA extends ByteArrayRDATA {
 	protected transient InetAddress addr;
-	public AddressRDATA(ByteBuffer buf) {
+	protected final String hostname;
+	
+	public AddressRDATA(ByteBuffer buf, String hostname) {
 		super(buf);
 		if (super.data.length != 4 && super.data.length != 16)
 			throw new IllegalArgumentException("Illegal address length " + super.data.length);
+		this.hostname = hostname;
 	}
-	public AddressRDATA(byte[] addr) {
+	
+	public AddressRDATA(byte[] addr, String hostname) {
 		super(addr);
 		if (addr.length != 4 && addr.length != 16)
 			throw new IllegalArgumentException("Illegal IP address length " + addr.length);
+		this.hostname = hostname;
 	}
 	
 	public AddressRDATA(InetAddress addr) {
 		super(addr.getAddress());
 		this.addr = addr;
+		this.hostname = addr.getHostName();
 	}
+	
 	public InetAddress getAddress() {
 		if (addr == null) {
 			try {
-				addr = InetAddress.getByAddress(super.data);
+				addr = InetAddress.getByAddress(this.hostname, super.data);
 			} catch (UnknownHostException e) {
 				//Can't happen, data length already validated
 			}
