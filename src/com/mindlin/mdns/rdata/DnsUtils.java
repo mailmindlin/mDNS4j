@@ -55,5 +55,18 @@ public class DnsUtils {
 		sb.setLength(sb.length() - 1);
 		return sb.toString();
 	}
+	
 	public static final char[] hexChars = "0123456789ABCDEF".toCharArray();
+	
+	public static String toHexString(byte[] data, char separator, char lineSeparator) {
+		StringBuffer sb = new StringBuffer(data.length * 3 + 1);
+		for (int i = 0; i < data.length; i++) {
+			int b = data[i] & 0xFF;
+			sb.append(DnsUtils.hexChars[b >>> 4]);
+			sb.append(DnsUtils.hexChars[b & 0xF]);
+			sb.append(i % 32 == 31 ? lineSeparator : separator);
+		}
+		sb.setLength(sb.length() - 1);
+		return sb.toString();
+	}
 }

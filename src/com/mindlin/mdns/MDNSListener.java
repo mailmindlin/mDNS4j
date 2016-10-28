@@ -61,10 +61,14 @@ public class MDNSListener implements Runnable, Closeable {
 	
 	protected synchronized void resetSocket() throws IOException {
 		MulticastSocket newSocket = new MulticastSocket();
+		//We don't necessarily want to receive our own messages
 		newSocket.setLoopbackMode(false);
+		//Sharing is caring.
 		newSocket.setReuseAddress(true);
+		//TODO bind to same address as old socket
 		newSocket.joinGroup(this.group, this.netIf);
 		MulticastSocket oldSocket = this.socket.getAndSet(newSocket);
+		//Close old socket, if applicable
 		if (oldSocket != null)
 			oldSocket.close();
 	}
@@ -100,15 +104,7 @@ public class MDNSListener implements Runnable, Closeable {
 			buf.limit(packet.getLength());
 			if (DnsUtils.DEBUG) {
 				System.out.println(buf.remaining());
-				char[] hexChars = "0123456789ABCDEF".toCharArray();
-				for (int i = 0, l = buf.remaining(); i < l; i++) {
-					int b = buf.get() & 0xFF;
-					System.out.print(hexChars[b >>> 4]);
-					System.out.print(hexChars[b & 0xF]);
-					System.out.print(' ');
-					if (i % 32 == 31)
-						System.out.println();
-				}
+				System.out.println(DnsUtils.toHexString(null, ' ', '\n'));
 				System.out.println();
 				buf.flip();
 			}
@@ -121,8 +117,13 @@ public class MDNSListener implements Runnable, Closeable {
 				e.printStackTrace();
 				continue;
 			}
-			
-			handler.accept(message);
+			try {
+				handler.accept(message);
+			} catch (Exception e) {
+				Exception ePrime = new RuntimeException("Exception in handler for mDNS Listener", e);
+				ePrime.fillInStackTrace();
+				ePrime.printStackTrace();
+			}
 		}
 	}
 	
