@@ -227,7 +227,7 @@ public class DnsMessage {
 	}
 	
 	public String toString() {
-		return new StringBuffer()
+		return new StringBuilder()
 			.append("DnsMessage{id:").append(this.id)
 			.append(",flags:").append(Integer.toBinaryString(this.flags))
 			.append(",qdCount:").append(this.questions.length)

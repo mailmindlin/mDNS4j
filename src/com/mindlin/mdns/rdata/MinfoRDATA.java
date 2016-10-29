@@ -60,7 +60,7 @@ public class MinfoRDATA implements RData {
 	
 	@Override
 	public String toString() {
-		return new StringBuffer(rMailbox.getSize() + eMailbox.getSize() + 15)
+		return new StringBuilder(rMailbox.getSize() + eMailbox.getSize() + 15)
 				.append("{rmail:").append(rMailbox)
 				.append(",email:").append(eMailbox)
 				.append('}')

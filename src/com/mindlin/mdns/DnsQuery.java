@@ -55,7 +55,7 @@ public class DnsQuery {
 	
 	@Override
 	public String toString() {
-		return new StringBuffer()
+		return new StringBuilder()
 				.append("DnsQuery{name:").append(name.toString())
 				.append(",type:").append(getType())
 				.append(",class:").append(getQclassStr())

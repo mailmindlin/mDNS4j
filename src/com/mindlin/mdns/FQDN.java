@@ -51,7 +51,7 @@ public class FQDN {
 	@Override
 	public String toString() {
 		if (toStringCache == null) {
-			StringBuffer sb = new StringBuffer(getSize() - 1);
+			StringBuilder sb = new StringBuilder(getSize() - 1);
 			for (int i = 0, l = this.labels.length; i < l; i++)
 				sb.append(labels[i]).append('.');
 			if (sb.length() > 0)

@@ -18,7 +18,7 @@ public class DnsUtils {
 	 */
 	public static final boolean CORRECT = true;
 	public static String readCharacterString(ByteBuffer buf) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		byte b = buf.get();
 		if (((char) b) == '"') {
 			while (true) {
@@ -57,7 +57,7 @@ public class DnsUtils {
 	}
 	
 	public static String toHexString(byte[] data, char separator) {
-		StringBuffer sb = new StringBuffer(data.length * 3 + 1);
+		StringBuilder sb = new StringBuilder(data.length * 3 + 1);
 		for (int i = 0; i < data.length; i++) {
 			int b = data[i] & 0xFF;
 			sb.append(DnsUtils.hexChars[b >>> 4]);
@@ -71,7 +71,7 @@ public class DnsUtils {
 	public static final char[] hexChars = "0123456789ABCDEF".toCharArray();
 	
 	public static String toHexString(byte[] data, char separator, char lineSeparator) {
-		StringBuffer sb = new StringBuffer(data.length * 3 + 1);
+		StringBuilder sb = new StringBuilder(data.length * 3 + 1);
 		for (int i = 0; i < data.length; i++) {
 			int b = data[i] & 0xFF;
 			sb.append(DnsUtils.hexChars[b >>> 4]);

@@ -46,7 +46,7 @@ public class HinfoRDATA implements RData {
 	
 	@Override
 	public String toString() {
-		return new StringBuffer(cpu.length() + os.length() + 14)
+		return new StringBuilder(cpu.length() + os.length() + 14)
 				.append("{cpu:'").append(cpu)
 				.append("',os:'").append(os)
 				.append("'}")

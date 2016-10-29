@@ -41,7 +41,7 @@ public class AddressRDATA extends ByteArrayRDATA {
 	@Override
 	public String toString() {
 		if (super.data.length == 4)
-			return new StringBuffer(super.data.length * 4)
+			return new StringBuilder(super.data.length * 4)
 					.append(data[0] & 0xFF)
 					.append('.').append(data[1] & 0xFF)
 					.append('.').append(data[2] & 0xFF)

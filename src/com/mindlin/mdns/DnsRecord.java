@@ -65,7 +65,7 @@ public class DnsRecord {
 	
 	@Override
 	public String toString() {
-		return new StringBuffer()
+		return new StringBuilder()
 				.append("DnsRecord{name:").append(name.toString())
 				.append(",type:").append(getType())
 				.append(",class:").append(getClazz())

@@ -56,7 +56,7 @@ public class SrvRDATA implements RData {
 	
 	@Override
 	public String toString() {
-		return new StringBuffer()
+		return new StringBuilder()
 			.append(getPriority())
 			.append(' ').append(getWeight())
 			.append(' ').append(getPort())
