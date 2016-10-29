@@ -4,7 +4,18 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class DnsUtils {
+	/**
+	 * Whether to print verbose debugging messages (including every byte of
+	 * every packet received) to stdout.
+	 */
 	public static final boolean DEBUG = false;
+	/**
+	 * Whether to parse DNS messages <b>correctly</b>, or as much as possible.
+	 * It is not recommended that you set this to false unless you are very sure
+	 * what is causing your problems, and you can't fix it (e.g., a printer on
+	 * your network implemented its mDNS responder incorrectly, but you just
+	 * need to find <i>a</i> printer).
+	 */
 	public static final boolean CORRECT = true;
 	public static String readCharacterString(ByteBuffer buf) {
 		StringBuffer sb = new StringBuffer();

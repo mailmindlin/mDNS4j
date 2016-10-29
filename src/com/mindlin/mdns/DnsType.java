@@ -25,26 +25,27 @@ public enum DnsType {
 	CNAME(5),
 	/**
 	 * Marks the start of a zone of authority
+	 * @see com.mindlin.mdns.rdata.SoaRDATA SoaRDATA
 	 */
 	SOA(6),
 	/**
-	 * a mailbox domain name (EXPERIMENTAL)
+	 * A mailbox domain name (EXPERIMENTAL)
 	 */
 	MB(7),
 	/**
-	 * a mail group member (EXPERIMENTAL)
+	 * A mail group member (EXPERIMENTAL)
 	 */
 	MG(8),
 	/**
-	 * a mail rename domain name (EXPERIMENTAL)
+	 * A mail rename domain name (EXPERIMENTAL)
 	 */
 	MR(9),
 	/**
-	 * a null RR (EXPERIMENTAL)
+	 * A null RR (EXPERIMENTAL)
 	 */
 	NULL(10),
 	/**
-	 * a well known service description
+	 * A well known service description
 	 */
 	WKS(11),
 	/**
