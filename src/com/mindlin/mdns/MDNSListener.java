@@ -166,10 +166,19 @@ public class MDNSListener implements Runnable, Closeable {
 		}
 	}
 	
-	public void query(String fqdn) throws IOException {
+	public void query(String name) throws IOException {
+		query(DnsType.ANY, name);
+	}
+	
+	public void query(DnsType type, String name) throws IOException {
 		sendMessage(DnsMessage.builder()
 				.setRecursionDesired(true)
-				.ask(DnsQuery.builder().setName(fqdn).setClass(DnsClass.IN).setType(DnsType.ANY).build()).build());
+				.ask(DnsQuery.builder()
+						.setType(type)
+						.setName(name)
+						.setClass(DnsClass.IN)
+						.build())
+				.build());
 	}
 	
 	public void sendMessage(DnsMessage message) throws IOException {
