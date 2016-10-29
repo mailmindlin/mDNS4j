@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 public class DnsUtils {
 	public static final boolean DEBUG = false;
+	public static final boolean CORRECT = true;
 	public static String readCharacterString(ByteBuffer buf) {
 		StringBuffer sb = new StringBuffer();
 		byte b = buf.get();

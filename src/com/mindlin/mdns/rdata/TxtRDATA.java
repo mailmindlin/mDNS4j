@@ -11,17 +11,25 @@ public class TxtRDATA implements RData {
 	
 	public TxtRDATA(ByteBuffer buf) {
 		this(new HashMap<>());
-		byte[] bytes = new byte[buf.remaining()];
-		buf.get(bytes);
-		for (int i = 0; i < bytes.length; i++) {
-			byte len = bytes[i];
-			String label = new String(bytes, i + 1, len, StandardCharsets.US_ASCII);
-			i += len;
-			System.out.println('"' + label + '"');
+		while (buf.hasRemaining()) {
+			int len = buf.get() & 0xFF;
+			if (len == 0)
+				break;
+			if (len > buf.remaining()) {
+				String msg = "Malformed TXT message (pos: " + buf.position() + " rem: " + buf.remaining() + " len: " + len + " delta: " + (buf.remaining() - len) + ")";
+				if (DnsUtils.CORRECT)
+					throw new IllegalStateException(msg);
+				System.err.println(msg);
+				break;
+			}
+			byte[] bytes = new byte[len];
+			buf.get(bytes, 0, len);
+			String label = new String(bytes, 0, len, StandardCharsets.US_ASCII);
+			if (DnsUtils.DEBUG)
+				System.out.println("[TXT]: \"" + label + '"');
 			int idx = label.indexOf('=');
 			this.data.put(label.substring(0, idx), label.substring(idx + 1));
 		}
-		System.out.println(this.data);
 	}
 	
 	public TxtRDATA(Map<String, String> data) {

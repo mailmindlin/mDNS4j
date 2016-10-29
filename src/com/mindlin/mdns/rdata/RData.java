@@ -8,8 +8,9 @@ import com.mindlin.mdns.FQDN;
 public interface RData {
 	@SuppressWarnings("deprecation")
 	public static RData readNext(DnsType type, ByteBuffer buf, FQDN name) {
-		final int len = buf.getShort() & 0xFFFF;
-//		System.out.println("Len: " + len);
+		int len = buf.getShort() & 0xFFFF;
+		if (!DnsUtils.CORRECT && buf.remaining() < len)
+			len = buf.remaining();
 		ByteBuffer slice = buf.duplicate();
 		slice.limit(slice.position() + len);
 		buf.position(buf.position() + len);

@@ -35,26 +35,58 @@ public class DnsMessage {
 		if (qdCount > 0 && DnsUtils.DEBUG)
 			System.out.println("Questions:");
 		DnsQuery[] questions = new DnsQuery[qdCount];
-		for (int i = 0; i < qdCount; i++)
+		for (int i = 0; i < qdCount; i++) {
+			if (!DnsUtils.CORRECT && !buf.hasRemaining()) {
+				System.err.println("Unable to read all QD (" + i + "/" + qdCount + ")");
+				DnsQuery[] tmp = questions;
+				questions = new DnsQuery[i];
+				System.arraycopy(tmp, 0, questions, 0, i);
+				break;
+			}
 			questions[i] = DnsQuery.readNext(buf);
+		}
 		
 		if (anCount > 0 && DnsUtils.DEBUG)
 			System.out.println("Answers:");
 		DnsRecord[] answers = new DnsRecord[anCount];
-		for (int i = 0; i < anCount; i++)
+		for (int i = 0; i < anCount; i++) {
+			if (!DnsUtils.CORRECT && !buf.hasRemaining()) {
+				System.err.println("Unable to read all AN (" + i + "/" + arCount + ")");
+				DnsRecord[] tmp = answers;
+				answers = new DnsRecord[i];
+				System.arraycopy(tmp, 0, answers, 0, i);
+				break;
+			}
 			answers[i] = DnsRecord.readNext(buf);
+		}
 		
 		if (nsCount > 0 && DnsUtils.DEBUG)
 			System.out.println("Authorities:");
 		DnsRecord[] authRecords = new DnsRecord[nsCount];
-		for (int i = 0; i < nsCount; i++)
+		for (int i = 0; i < nsCount; i++) {
+			if (!DnsUtils.CORRECT && !buf.hasRemaining()) {
+				System.err.println("Unable to read all NS (" + i + "/" + nsCount + ")");
+				DnsRecord[] tmp = authRecords;
+				authRecords = new DnsRecord[i];
+				System.arraycopy(tmp, 0, authRecords, 0, i);
+				break;
+			}
 			authRecords[i] = DnsRecord.readNext(buf);
+		}
 
 		if (arCount > 0 && DnsUtils.DEBUG)
 			System.out.println("Additional:");
 		DnsRecord[] additional = new DnsRecord[arCount];
-		for (int i = 0; i < arCount; i++)
+		for (int i = 0; i < arCount; i++) {
+			if (!DnsUtils.CORRECT && !buf.hasRemaining()) {
+				System.err.println("Unable to read all AR (" + i + "/" + arCount + ")");
+				DnsRecord[] tmp = additional;
+				additional = new DnsRecord[i];
+				System.arraycopy(tmp, 0, additional, 0, i);
+				break;
+			}
 			additional[i] = DnsRecord.readNext(buf);
+		}
 		
 		return new DnsMessage(id, flags, questions, answers, authRecords, additional);
 	}
@@ -65,11 +97,14 @@ public class DnsMessage {
 	
 	// See http://www.zytrax.com/books/dns/ch15/
 	protected final int id;
+	
 	protected final int flags;
+	
 	/**
 	 * Question section
 	 */
 	protected final DnsQuery[] questions;
+	
 	/**
 	 * Answer section
 	 */
