@@ -29,6 +29,7 @@ public class MDNSListener implements Runnable, Closeable {
 	}
 	
 	public static final int MDNS_PORT = 5353;
+	public static final int MAX_DNS_PACKET_SIZE = 576;
 	/**
 	 * IP4 multicast address.
 	 */
@@ -75,11 +76,11 @@ public class MDNSListener implements Runnable, Closeable {
 	
 	@Override
 	public void run() {
-		ByteBuffer buf = ByteBuffer.allocate(512);
-		DatagramPacket packet = new DatagramPacket(buf.array(), 0, 512);
+		ByteBuffer buf = ByteBuffer.allocate(MAX_DNS_PACKET_SIZE);
+		DatagramPacket packet = new DatagramPacket(buf.array(), 0, MAX_DNS_PACKET_SIZE);
 		while (true) {
 			buf.clear();
-			packet.setLength(512);
+			packet.setLength(buf.capacity());
 			try {
 				MulticastSocket socket;
 				//Loop until we get a packet.
