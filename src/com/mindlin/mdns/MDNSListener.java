@@ -104,13 +104,11 @@ public class MDNSListener implements Runnable, Closeable {
 			buf.mark();
 			buf.limit(packet.getLength());
 			if (DnsUtils.DEBUG) {
-				System.out.println(buf.remaining());
-				System.out.println(DnsUtils.toHexString(null, ' ', '\n'));
-				System.out.println();
-				buf.flip();
+				System.out.println("Read " + buf.remaining());
+				System.out.println(DnsUtils.toHexString(buf.array(), ' ', '\n'));
+				if (buf.remaining() % 32 != 0)
+					System.out.println();
 			}
-			System.out.println();
-			buf.flip();
 			DnsMessage message;
 			try {
 				message = DnsMessage.parse(buf);
@@ -157,12 +155,12 @@ public class MDNSListener implements Runnable, Closeable {
 			System.out.println("\tRESP\t" + answer.getName().toString() + '\t' + answer.getClazz() + '\t' + answer.getType() + '\t' + answer.getData());
 		}
 		for (int i = 0; i < message.authRecords.length; i++) {
-			DnsRecord answer = message.authRecords[i];
-			System.out.println("\tAUTH\t" + answer.getName().toString() + '\t' + answer.getClazz() + '\t' + answer.getType());
+			DnsRecord record = message.authRecords[i];
+			System.out.println("\tAUTH\t" + record.getName().toString() + '\t' + record.getClazz() + '\t' + record.getType() + '\t' + record.getData());
 		}
 		for (int i = 0; i < message.additionalRecords.length; i++) {
-			DnsRecord answer = message.additionalRecords[i];
-			System.out.println("\tADDTL\t" + answer.getName().toString() + '\t' + answer.getClazz() + '\t' + answer.getType());
+			DnsRecord record = message.additionalRecords[i];
+			System.out.println("\tADDTL\t" + record.getName().toString() + '\t' + record.getClazz() + '\t' + record.getType() + '\t' + record.getData());
 		}
 	}
 	
